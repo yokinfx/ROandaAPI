@@ -544,3 +544,41 @@ Autochartist <- function(AccountType,Token,Instrument,Period,Type){
 # Function GetHistoryOanda
 # Gets X candles of history
 # Author - yokinfx
+GetHistoryOanda = function(Token, sim1, timeframe, velas) {
+  library(RCurl)
+  library(rjson)
+  library(parsedate)
+  detach_package(jsonlite)
+  #token <- YOUR TOKEN
+  token <- Token
+  simbolo <- sim1; 
+  granularity <- timeframe
+  numVelas <- velas
+  
+  auth <- c(Authorization=paste("Bearer",token))
+  query <- paste("https://api-fxpractice.oanda.com/v1/candles?instrument=",simbolo,"&count=",numVelas,
+                 "&granularity=",granularity,sep="")
+  
+  getData <- getURL(query, httpheader = auth, .opts = list(ssl.verifypeer = FALSE))
+  jsonData <- fromJSON(getData)
+  
+  x<-data.frame(time=strptime(jsonData$candles[[numVelas-1]]$time,format="%Y-%m-%dT%H:%M"),close=jsonData$candles[[numVelas-1]]$closeBid)
+  # (1)
+  #If you want seconds precission, comment previous line and uncomment following:
+  #  x<-data.frame(time=strptime(jsonData$candles[[numVelas-1]]$time,format="%Y-%m-%dT%T"),close=jsonData$candles[[numVelas-1]]$closeBid)
+
+  
+  for (i in (numVelas-2):1)
+  {
+    newRow<-data.frame(time=strptime(jsonData$candles[[i]]$time,format="%Y-%m-%dT%H:%M"),close=jsonData$candles[[i]]$closeBid)
+    # If you want seconds precission, read (1),  comment previous line, and uncomment the following:
+    #newRow<-data.frame(time=strptime(jsonData$candles[[i]]$time,format="%Y-%m-%dT%T"),close=jsonData$candles[[i]]$closeBid)
+
+    x<-rbind(newRow,x)
+  }
+  
+  x
+  #Lo pasamos a xts
+  #s1 <- xts(x[,-1], order.by=x[,1])
+}
+
