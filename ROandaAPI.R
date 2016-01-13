@@ -185,7 +185,7 @@ NewOrder <- function(AccountType,Token,Instrument,AccountID,Count,Side,OrderType
   
   postForm(Queryhttp2,style="POST",.params=c(instrument=Instrument,units=Count,upperBound=slipUp,
   lowerBound=slipDown,takeProfit=takeProfit,stopLoss=stopLoss,side=Side,type=OrderType),
-  opts=list(httpheader=auth,ssl.verifypeer = FALSE))
+  .opts=list(httpheader=auth,ssl.verifypeer = FALSE))
 }
 
 # -- -------------------------------------------------------------------------------------------- #
