@@ -540,3 +540,7 @@ Autochartist <- function(AccountType,Token,Instrument,Period,Type){
 # -- PENDING Modify parameters of an order ------------------------------------------------------ #
 
 # -- PENDING Modify parameters of a trade ------------------------------------------------------- #
+
+# Function GetHistoryOanda
+# Gets X candles of history
+# Author - yokinfx
