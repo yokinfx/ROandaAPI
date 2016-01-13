@@ -548,6 +548,8 @@ GetHistoryOanda <- function(Token, sim1, timeframe, velas) {
   library(RCurl)
   library(rjson)
   library(parsedate)
+  #Functions GetHistoryOanda and GetHistoryOanda2 make use of different libraries for json parsing. We must unload jsonlite 
+  # to avoid conflicts. Function detach_package is added at the end of this file
   detach_package(jsonlite)
   #token <- YOUR TOKEN
   token <- Token
@@ -654,4 +656,16 @@ GetHistoryOanda2 <- function(Token,sim1, timeframe, from, to) {
   s1 <- xts(Result[,-1], order.by=Result[,1])
   save(s1,file=nombreFichero)
   s1
+}
+
+detach_package<-function(pkg, character.only = FALSE){
+  if(!character.only)
+  {
+    pkg <- deparse(substitute(pkg))
+  }
+  search_item <- paste("package", pkg, sep = ":")
+  while(search_item %in% search())
+  {
+    detach(search_item, unload = TRUE, character.only = TRUE)
+  }
 }
