@@ -658,6 +658,87 @@ GetHistoryOanda2 <- function(Token,sim1, timeframe, from, to) {
   s1
 }
 
+#Function GetHistoryOanda3
+# It's basicaly the same as GetHistoryOanda2, with from and to, but it also has columns OHLC -using BID prices
+# Outputs xts. Easys work with third party libraries like quantstrat, quantmod and others
+GetHistoryOanda3 = function(sim1, timeframe, from, to) {
+  nombreFichero<-paste("C:/Users/jpoudereux/Documents/R/hist/",sim1,".",timeframe,".",from,".",to,".rdata",sep="")
+  if (file.exists(nombreFichero)) {
+    load(nombreFichero)
+    return(s1)
+  }
+  library(RCurl)
+  library(rjson)
+  library(parsedate)
+  detach_package(jsonlite)
+  token <- "c578561504a184144f9c82b29c4bf21f-9665fba68a6e1dc6dab5a9b4b2ebe845"
+  simbolo <- sim1; 
+  granularity <- timeframe
+  numVelas<-1000
+  
+  diferencia<-difftime(strptime(to,format="%Y-%m-%d"), strptime(from,format="%Y-%m-%d"))
+  stopifnot(diferencia > 0)
+  
+  lapse<-0
+  if(timeframe=="M1")       lapse <- 3
+  else if(timeframe=="M5")  lapse <- 15
+  else if(timeframe=="M15") lapse <- 50
+  else if(timeframe=="M30") lapse <- 100
+  else if(timeframe=="H1")  lapse <- 200
+  else if(timeframe=="H4")  lapse <- 800
+  else if(timeframe=="D")   lapse <- 5000
+  
+  startDate<-paste(toString(from),"T00:00:00Z",sep="")
+  endDate<-to
+  if (diferencia > lapse) endDate<-as.Date(from)+lapse  
+  endDate=paste(toString(endDate),"T23:59:59Z",sep="")
+  
+  x<-0
+  Result<-c()
+  diferencia <- difftime(strptime(endDate,format="%Y-%m-%dT%T"), strptime(startDate,format="%Y-%m-%dT%T"))
+  cat(from," ",startDate," ",endDate," ",to,"\n")
+  startDate = as.Date(startDate)
+  endDate = as.Date(endDate)
+  iter<-1
+  
+  while(!is.na(diferencia) & diferencia >= 0) {
+    auth <- c(Authorization=paste("Bearer",token))
+    query <- paste("https://api-fxpractice.oanda.com/v1/candles?instrument=",simbolo,"&start=", gsub("\\:","%3A",startDate),
+                   "&end=",gsub("\\:","%3A",endDate),"&granularity=",granularity,sep="")      
+    getData <- getURL(query, httpheader = auth, .opts = list(ssl.verifypeer = FALSE))
+    jsonData <- fromJSON(getData)
+    
+    i<-2
+    x=data.frame(time=strptime(jsonData$candles[[1]]$time,format="%Y-%m-%dT%T"),
+                 Open=jsonData$candles[[1]]$openBid,
+                 High=jsonData$candles[[1]]$highBid,
+                 Low=jsonData$candles[[1]]$lowBid,
+                 Close=jsonData$candles[[1]]$closeBid)
+
+    while(i<=length(jsonData$candles)) {
+      newRow<-data.frame(time=strptime(jsonData$candles[[i]]$time,format="%Y-%m-%dT%T"),
+                         Open=jsonData$candles[[i]]$openBid,
+                         High=jsonData$candles[[i]]$highBid,
+                         Low=jsonData$candles[[i]]$lowBid,
+                         Close=jsonData$candles[[i]]$closeBid)
+      x<-rbind(newRow,x)
+      i=i+1
+    }
+    startDate = endDate
+    endDate   = as.Date(endDate,"%Y-%m-%d") + lapse
+    diferencia = as.Date(endDate) - as.Date(startDate)
+    cat("[",iter,"] from: ",as.Date(startDate)," to: ",as.Date(to)," , endDate: ",as.Date(endDate)," ,startDate: ",startDate,"\n")
+    Result=rbind(x,Result)
+    iter = iter+1
+    if (as.Date(endDate) > as.Date(to)) break
+  }
+  #print(x)
+  #Lo pasamos a xts
+  s1 <- xts(Result[,-1], order.by=Result[,1])
+  save(s1,file=nombreFichero)
+  s1
+}
+
 detach_package<-function(pkg, character.only = FALSE){
   if(!character.only)
   {
