@@ -771,11 +771,17 @@ pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, Accoun
     if (baseCurrency != accountCurrency) {
       if (grepl(accountCurrency,listaSimbolos[i,1]) &&
           grepl(baseCurrency,listaSimbolos[i,1])) {
-        lotSize <- as.double(listaSimbolos[i,3])
+        lotSize1 <- as.double(listaSimbolos[i,3])
+        for (j in 1:nrow(listaSimbolos)){
+          if (listaSimbolos[j,1] == symbol) {
+            lotSize2 <- as.double(listaSimbolos[j,3])
+            break
+          }
+        }
         prices <- paste(listaSimbolos[i,1],"%2C",symbol,sep="")
         lastQuotes <- ActualPrice(AccountType,Token,prices)
-        return( (amount * lotSize) / 
-                (lastQuotes[1,2] * lastQuotes[2,2]))
+        return( (amount *lotSize1 / lastQuotes[1,2]) *
+                (amount *lotSize2 /  lastQuotes[2,2]) ) 
       }
     }
   }
