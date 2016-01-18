@@ -750,3 +750,33 @@ detach_package<-function(pkg, character.only = FALSE){
     detach(search_item, unload = TRUE, character.only = TRUE)
   }
 }
+
+# Function pipValue
+# Outputs pipValue according to account base currency, amount of opening order and symbol of reference
+# This function gives basic output. It is tested for accounts with base Currency "EUR"
+# Example: 
+# pipValue("EUR","CHF_JPY",10000,"practice",token,accountId)
+pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, AccountID){
+  InstJson <- InstrumentsList(AccountType,Token,AccountID)
+  listaSimbolos <- InstJson$instruments
+  for (i in 1:nrow(listaSimbolos)){
+    baseCurrency <- substr(symbol,1,3)
+    lotSize <- 0.0001
+    if (baseCurrency == accountCurrency &&
+        symbol == listaSimbolos[i,1]) {
+      lotSize <- as.double(listaSimbolos[i,3])
+      lastQuote <- ActualPrice(AccountType,Token,symbol)[1,2]
+      return( (amount * lotSize) / lastQuote)
+    }
+    if (baseCurrency != accountCurrency) {
+      if (grepl(accountCurrency,listaSimbolos[i,1]) &&
+          grepl(baseCurrency,listaSimbolos[i,1])) {
+        lotSize <- as.double(listaSimbolos[i,3])
+        prices <- paste(listaSimbolos[i,1],"%2C",symbol,sep="")
+        lastQuotes <- ActualPrice(AccountType,Token,prices)
+        return( (amount * lotSize) / 
+                (lastQuotes[1,2] * lastQuotes[2,2]))
+      }
+    }
+  }
+}
