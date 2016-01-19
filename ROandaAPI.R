@@ -660,8 +660,8 @@ GetHistoryOanda2 <- function(Token,sim1, timeframe, from, to) {
 
 #Function GetHistoryOanda3
 # It's basicaly the same as GetHistoryOanda2, with from and to, but it also has columns OHLC -using BID prices
-# Outputs xts. Easys work with third party libraries like quantstrat, quantmod and others
-GetHistoryOanda3 = function(sim1, timeframe, from, to) {
+# Outputs xts. Eases work with third party libraries like quantstrat, quantmod and others
+GetHistoryOanda3 = function(sim1, timeframe, from, to, Token) {
   nombreFichero<-paste("C:/Users/jpoudereux/Documents/R/hist/",sim1,".",timeframe,".",from,".",to,".rdata",sep="")
   if (file.exists(nombreFichero)) {
     load(nombreFichero)
@@ -671,8 +671,8 @@ GetHistoryOanda3 = function(sim1, timeframe, from, to) {
   library(rjson)
   library(parsedate)
   detach_package(jsonlite)
-  token <- "c578561504a184144f9c82b29c4bf21f-9665fba68a6e1dc6dab5a9b4b2ebe845"
-  simbolo <- sim1; 
+  token <- Token
+  simbolo <- sim1
   granularity <- timeframe
   numVelas<-1000
   
