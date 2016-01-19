@@ -786,3 +786,28 @@ pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, Accoun
     }
   }
 }
+
+#Function PositionOpened.
+# yokinfx
+# Just for ease of use, returns TRUE or FALSE if there's position opened in instrument passed as parameter
+PositionOpened <- function(Instrument,AccountType,AccountID,Token) {
+  pos <- AccountPositions(AccountType,AccountID,Token)
+  pos <- as.data.frame(pos)
+  for (i in 1:nrow(pos)){
+    if (pos[i,1] == Instrument) return(TRUE)
+  }
+  return(FALSE)
+}
+
+#Function Point
+# yokinfx
+# Just for ease uf use, returns lotSize of instrument passed as parameter.
+# What is called 'Point' in platforms like MetaTrader
+Point <- function(symbol,AccountType,Token,AccountID) {
+  instruments <- InstrumentsList(AccountType,Token,AccountID)
+  instruments <- as.data.frame(instruments)
+  for (i in 1:nrow(instruments)){
+    if (instruments[i,1] == symbol) 
+      return(as.double(instruments[i,3]))
+  }
+}
