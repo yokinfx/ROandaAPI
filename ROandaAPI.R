@@ -757,20 +757,22 @@ detach_package<-function(pkg, character.only = FALSE){
 # Example: 
 # pipValue("EUR","CHF_JPY",10000,"practice",token,accountId)
 pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, AccountID){
-  InstJson <- InstrumentsList(AccountType,Token,AccountID)
+  InstJson <- InstrumentsList(AccountType,token,accountId)
   listaSimbolos <- InstJson$instruments
   for (i in 1:nrow(listaSimbolos)){
     baseCurrency <- substr(symbol,1,3)
-    lotSize <- 0.0001
+    counterCurrency <- substr(symbol,4,6)
+    lotSize1 <- 0.0001
+    lotSize2 <- 0.0001
     if (baseCurrency == accountCurrency &&
         symbol == listaSimbolos[i,1]) {
       lotSize <- as.double(listaSimbolos[i,3])
-      lastQuote <- ActualPrice(AccountType,Token,symbol)[1,2]
+      lastQuote <- ActualPrice(AccountType,token,symbol)[1,2]
       return( (amount * lotSize) / lastQuote)
     }
     if (baseCurrency != accountCurrency) {
       if (grepl(accountCurrency,listaSimbolos[i,1]) &&
-          grepl(baseCurrency,listaSimbolos[i,1])) {
+          grepl(counterCurrency,listaSimbolos[i,1])) {
         lotSize1 <- as.double(listaSimbolos[i,3])
         for (j in 1:nrow(listaSimbolos)){
           if (listaSimbolos[j,1] == symbol) {
@@ -779,13 +781,15 @@ pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, Accoun
           }
         }
         prices <- paste(listaSimbolos[i,1],"%2C",symbol,sep="")
-        lastQuotes <- ActualPrice(AccountType,Token,prices)
-        return( (amount *lotSize1 / lastQuotes[1,2]) *
-                (amount *lotSize2 /  lastQuotes[2,2]) ) 
+        lastQuotes <- ActualPrice(AccountType,token,prices)
+        pipSize <- amount * lotSize2
+        return(pipSize / lastQuotes[1,2])
       }
     }
   }
 }
+
+
 
 #Function PositionOpened.
 # yokinfx
@@ -793,12 +797,13 @@ pipValue <- function(accountCurrency, symbol, amount, AccountType, Token, Accoun
 PositionOpened <- function(Instrument,AccountType,AccountID,Token) {
   pos <- AccountPositions(AccountType,AccountID,Token)
   pos <- as.data.frame(pos)
-  for (i in 1:nrow(pos)){
+  i<- 1
+  while(nrow(pos) >= i){
     if (pos[i,1] == Instrument) return(TRUE)
+    i<-i+1
   }
   return(FALSE)
 }
-
 #Function Point
 # yokinfx
 # Just for ease uf use, returns lotSize of instrument passed as parameter.
