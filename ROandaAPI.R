@@ -564,13 +564,13 @@ GetHistoryOanda <- function(Token, sim1, timeframe, velas) {
   getData <- getURL(query, httpheader = auth, .opts = list(ssl.verifypeer = FALSE))
   jsonData <- fromJSON(getData)
   
-  x<-data.frame(time=strptime(jsonData$candles[[numVelas-1]]$time,format="%Y-%m-%dT%H:%M"),close=jsonData$candles[[numVelas-1]]$closeBid)
+  x<-data.frame(time=strptime(jsonData$candles[[numVelas]]$time,format="%Y-%m-%dT%H:%M"),close=jsonData$candles[[numVelas]]$closeBid)
   # (1)
   #If you want seconds precission, comment previous line and uncomment following:
   #  x<-data.frame(time=strptime(jsonData$candles[[numVelas-1]]$time,format="%Y-%m-%dT%T"),close=jsonData$candles[[numVelas-1]]$closeBid)
 
   
-  for (i in (numVelas-2):1)
+  for (i in (numVelas-1):1)
   {
     newRow<-data.frame(time=strptime(jsonData$candles[[i]]$time,format="%Y-%m-%dT%H:%M"),close=jsonData$candles[[i]]$closeBid)
     # If you want seconds precission, read (1),  comment previous line, and uncomment the following:
